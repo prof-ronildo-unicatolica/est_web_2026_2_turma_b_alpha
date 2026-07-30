@@ -5,7 +5,11 @@ Desenvolvimento Web** — 2026.2.
 
 ## Integrantes
 
-_A definir apos o sorteio na Aula 01._
+- Wladyson Araújo Rodrigues
+- Pedro Henrique Holanda de Oliveira Bezerra
+- Kelton dos Santos Oliveira
+- Levi Marques Waterloo
+- Iara Barros Ferreira
 
 ## Fluxo de trabalho
 
