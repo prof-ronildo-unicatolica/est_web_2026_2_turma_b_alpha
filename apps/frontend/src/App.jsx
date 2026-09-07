@@ -5,6 +5,7 @@ import StacksTable from './components/StacksTable'
 import ImageAndCarousel from './components/ImageAndCarousel'
 import Sidebar from './components/Sidebar'
 import VideoComponent from './components/VideoComponent'
+import HoteisRaw from './components/HoteisRaw'
 import InteractiveExamples from './components/InteractiveExamples'
 
 export default function App() {
@@ -130,6 +131,7 @@ export default function App() {
               <ImageAndCarousel />
               <VideoComponent />
               <InteractiveExamples />
+              <HoteisRaw />
             </div>
           </div>
         )}
