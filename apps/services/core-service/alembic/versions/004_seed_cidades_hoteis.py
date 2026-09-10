@@ -19,9 +19,6 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
-# IDs fixos (em vez de uuid.uuid4() na hora de rodar): assim o downgrade()
-# sabe exatamente quais linhas apagar, sem arriscar apagar dados que o
-# usuario tenha criado manualmente com o mesmo nome.
 CIDADE_FORTALEZA_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
 CIDADE_SOBRAL_ID = uuid.UUID("22222222-2222-2222-2222-222222222222")
 CIDADE_JERICOACOARA_ID = uuid.UUID("33333333-3333-3333-3333-333333333333")
@@ -56,48 +53,19 @@ def upgrade() -> None:
         ],
     )
 
-    # Um hotel para cada nivel de estrela (1 a 5), espalhados entre as
-    # cidades, cobrindo o pedido do roadmap sem depender de uma quantidade
-    # exata de registros.
     op.bulk_insert(
         hoteis_table,
         [
-            {
-                "id": HOTEL_1_ESTRELA_ID,
-                "nome": "Pousada Economica Sobral",
-                "cidade_id": CIDADE_SOBRAL_ID,
-                "estrelas": 1,
-            },
-            {
-                "id": HOTEL_2_ESTRELAS_ID,
-                "nome": "Hotel Beira-Mar",
-                "cidade_id": CIDADE_FORTALEZA_ID,
-                "estrelas": 2,
-            },
-            {
-                "id": HOTEL_3_ESTRELAS_ID,
-                "nome": "Hotel Iracema",
-                "cidade_id": CIDADE_FORTALEZA_ID,
-                "estrelas": 3,
-            },
-            {
-                "id": HOTEL_4_ESTRELAS_ID,
-                "nome": "Resort Jericoacoara",
-                "cidade_id": CIDADE_JERICOACOARA_ID,
-                "estrelas": 4,
-            },
-            {
-                "id": HOTEL_5_ESTRELAS_ID,
-                "nome": "Grand Hotel Jericoacoara",
-                "cidade_id": CIDADE_JERICOACOARA_ID,
-                "estrelas": 5,
-            },
+            {"id": HOTEL_1_ESTRELA_ID, "nome": "Pousada Economica Sobral", "cidade_id": CIDADE_SOBRAL_ID, "estrelas": 1},
+            {"id": HOTEL_2_ESTRELAS_ID, "nome": "Hotel Beira-Mar", "cidade_id": CIDADE_FORTALEZA_ID, "estrelas": 2},
+            {"id": HOTEL_3_ESTRELAS_ID, "nome": "Hotel Iracema", "cidade_id": CIDADE_FORTALEZA_ID, "estrelas": 3},
+            {"id": HOTEL_4_ESTRELAS_ID, "nome": "Resort Jericoacoara", "cidade_id": CIDADE_JERICOACOARA_ID, "estrelas": 4},
+            {"id": HOTEL_5_ESTRELAS_ID, "nome": "Grand Hotel Jericoacoara", "cidade_id": CIDADE_JERICOACOARA_ID, "estrelas": 5},
         ],
     )
 
 
 def downgrade() -> None:
-    # Ordem inversa: apaga hoteis (dependentes) antes das cidades.
     op.execute(
         sa.text(
             "DELETE FROM hoteis WHERE id IN ("
