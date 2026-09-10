@@ -1,117 +1,36 @@
-"""seed de cidades e hoteis de exemplo (1 a 5 estrelas)
-
-Revision ID: 004
-Revises: 003
-Create Date: 2026-09-10 15:10:00.000000
-
-"""
-
 import uuid
-from typing import Sequence, Union
+from typing import List
 
-import sqlalchemy as sa
+from sqlalchemy import CheckConstraint, ForeignKey, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from alembic import op
-
-revision: str = "004"
-down_revision: Union[str, None] = "003"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+from app.models.tutorial import Base
 
 
-# IDs fixos (em vez de uuid.uuid4() na hora de rodar): assim o downgrade()
-# sabe exatamente quais linhas apagar, sem arriscar apagar dados que o
-# usuario tenha criado manualmente com o mesmo nome.
-CIDADE_FORTALEZA_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
-CIDADE_SOBRAL_ID = uuid.UUID("22222222-2222-2222-2222-222222222222")
-CIDADE_JERICOACOARA_ID = uuid.UUID("33333333-3333-3333-3333-333333333333")
+class Cidade(Base):
+    __tablename__ = "cidades"
 
-HOTEL_1_ESTRELA_ID = uuid.UUID("a1111111-1111-1111-1111-111111111111")
-HOTEL_2_ESTRELAS_ID = uuid.UUID("a2222222-2222-2222-2222-222222222222")
-HOTEL_3_ESTRELAS_ID = uuid.UUID("a3333333-3333-3333-3333-333333333333")
-HOTEL_4_ESTRELAS_ID = uuid.UUID("a4444444-4444-4444-4444-444444444444")
-HOTEL_5_ESTRELAS_ID = uuid.UUID("a5555555-5555-5555-5555-555555555555")
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    nome: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
 
-
-def upgrade() -> None:
-    cidades_table = sa.table(
-        "cidades",
-        sa.column("id", sa.UUID()),
-        sa.column("nome", sa.String()),
-    )
-    hoteis_table = sa.table(
-        "hoteis",
-        sa.column("id", sa.UUID()),
-        sa.column("nome", sa.String()),
-        sa.column("cidade_id", sa.UUID()),
-        sa.column("estrelas", sa.Integer()),
-    )
-
-    op.bulk_insert(
-        cidades_table,
-        [
-            {"id": CIDADE_FORTALEZA_ID, "nome": "Fortaleza"},
-            {"id": CIDADE_SOBRAL_ID, "nome": "Sobral"},
-            {"id": CIDADE_JERICOACOARA_ID, "nome": "Jericoacoara"},
-        ],
-    )
-
-    # Um hotel para cada nivel de estrela (1 a 5), espalhados entre as
-    # cidades, cobrindo o pedido do roadmap sem depender de uma quantidade
-    # exata de registros.
-    op.bulk_insert(
-        hoteis_table,
-        [
-            {
-                "id": HOTEL_1_ESTRELA_ID,
-                "nome": "Pousada Economica Sobral",
-                "cidade_id": CIDADE_SOBRAL_ID,
-                "estrelas": 1,
-            },
-            {
-                "id": HOTEL_2_ESTRELAS_ID,
-                "nome": "Hotel Beira-Mar",
-                "cidade_id": CIDADE_FORTALEZA_ID,
-                "estrelas": 2,
-            },
-            {
-                "id": HOTEL_3_ESTRELAS_ID,
-                "nome": "Hotel Iracema",
-                "cidade_id": CIDADE_FORTALEZA_ID,
-                "estrelas": 3,
-            },
-            {
-                "id": HOTEL_4_ESTRELAS_ID,
-                "nome": "Resort Jericoacoara",
-                "cidade_id": CIDADE_JERICOACOARA_ID,
-                "estrelas": 4,
-            },
-            {
-                "id": HOTEL_5_ESTRELAS_ID,
-                "nome": "Grand Hotel Jericoacoara",
-                "cidade_id": CIDADE_JERICOACOARA_ID,
-                "estrelas": 5,
-            },
-        ],
+    hoteis: Mapped[List["Hotel"]] = relationship(
+        back_populates="cidade", cascade="all, delete-orphan"
     )
 
 
-def downgrade() -> None:
-    # Ordem inversa: apaga hoteis (dependentes) antes das cidades.
-    op.execute(
-        sa.text(
-            "DELETE FROM hoteis WHERE id IN ("
-            f"'{HOTEL_1_ESTRELA_ID}', '{HOTEL_2_ESTRELAS_ID}', "
-            f"'{HOTEL_3_ESTRELAS_ID}', '{HOTEL_4_ESTRELAS_ID}', "
-            f"'{HOTEL_5_ESTRELAS_ID}'"
-            ")"
-        )
+class Hotel(Base):
+    __tablename__ = "hoteis"
+    __table_args__ = (
+        CheckConstraint("estrelas >= 1 AND estrelas <= 5", name="ck_hoteis_estrelas_range"),
     )
-    op.execute(
-        sa.text(
-            "DELETE FROM cidades WHERE id IN ("
-            f"'{CIDADE_FORTALEZA_ID}', '{CIDADE_SOBRAL_ID}', "
-            f"'{CIDADE_JERICOACOARA_ID}'"
-            ")"
-        )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    nome: Mapped[str] = mapped_column(String(100), nullable=False)
+
+    estrelas: Mapped[int] = mapped_column(Integer, nullable=False, default=3)
+
+    cidade_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("cidades.id", ondelete="CASCADE"), nullable=False
     )
+
+    cidade: Mapped["Cidade"] = relationship(back_populates="hoteis")
