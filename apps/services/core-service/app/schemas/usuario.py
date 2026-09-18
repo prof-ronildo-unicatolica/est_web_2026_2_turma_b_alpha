@@ -6,6 +6,12 @@ class LoginRequest(BaseModel):
     senha: str
 
 
+class UsuarioCreate(BaseModel):
+    nome: str
+    email: str
+    senha: str
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
