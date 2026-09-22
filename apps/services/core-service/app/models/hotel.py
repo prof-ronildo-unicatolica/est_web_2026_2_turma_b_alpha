@@ -1,5 +1,5 @@
 import uuid
-from typing import List
+from typing import TYPE_CHECKING, List
 
 from sqlalchemy import (
     JSON,
@@ -14,6 +14,9 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.tutorial import Base
+
+if TYPE_CHECKING:
+    from app.models.quarto import Quarto
 
 hotel_comodidades = Table(
     "hotel_comodidades",
@@ -78,6 +81,11 @@ class Hotel(Base):
         secondary=hotel_comodidades,
         back_populates="hoteis",
     )
+
+    quartos: Mapped[List["Quarto"]] = relationship(
+    back_populates="hotel",
+    cascade="all, delete-orphan",
+)
 
 
 class Comodidade(Base):
