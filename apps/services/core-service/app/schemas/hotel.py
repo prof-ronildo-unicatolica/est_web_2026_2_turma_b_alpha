@@ -5,54 +5,40 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class CidadeCreateSchema(BaseModel):
-    """O que o cliente envia em POST /cidades.
+    nome: str = Field(min_length=1, max_length=100)
 
-    Nao tem 'id': quem gera o identificador e o servidor.
-    """
 
-    # min_length=1 barra string vazia; sem isso, {"nome": ""} passaria e
-    # criaria uma cidade sem nome. O banco aceita '' -- ele so recusa NULL.
+class CidadeUpdateSchema(BaseModel):
     nome: str = Field(min_length=1, max_length=100)
 
 
 class CidadeResponseSchema(BaseModel):
-    """O que a API devolve. Aqui o 'id' e obrigatorio: sem ele o frontend
-    nao consegue vincular um hotel a esta cidade depois."""
-
-    # from_attributes: permite construir o schema a partir de um objeto do
-    # SQLAlchemy (lendo atributos), e nao so a partir de um dict.
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
     nome: str
 
+
 class HotelCreateSchema(BaseModel):
-    """O que o cliente envia em POST /hoteis.
-
-    A cidade entra como ID, nao como objeto: assim nao ha duvida se e para
-    reaproveitar uma cidade existente ou criar uma nova (e sempre reaproveitar).
-    """
-
     nome: str = Field(min_length=1, max_length=100)
     cidade_id: uuid.UUID
+    estrelas: int = Field(default=3, ge=1, le=5)
+
+
+class HotelUpdateSchema(BaseModel):
+    nome: str = Field(min_length=1, max_length=100)
+    cidade_id: uuid.UUID
+    estrelas: int = Field(ge=1, le=5)
 
 
 class HotelResponseSchema(BaseModel):
-    """O que a API devolve.
-
-    A cidade vem ANINHADA e completa: sem isso o frontend precisaria de uma
-    requisicao extra por hotel so para descobrir o nome da cidade.
-    """
-
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
     nome: str
+    estrelas: int
     cidade: CidadeResponseSchema
 
 
 class CidadeComHoteisSchema(CidadeResponseSchema):
-    """Cidade com a lista de hoteis dentro. Usada so onde ela for pedida
-    explicitamente -- ver a nota sobre recursao infinita no item 4."""
-
     hoteis: List[HotelResponseSchema] = []
