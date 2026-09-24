@@ -7,7 +7,8 @@ from alembic import context
 # Importar modelos e configurações
 from app.core.config import settings
 from app.models import (
-    hotel,  # noqa: F401  -- registra Cidade e Hotel na Base.metadata
+    hotel,  # noqa: F401  -- registra Cidade, Hotel e Comodidade na Base.metadata
+    quarto,  # noqa: F401  -- registra Quarto na Base.metadata
     usuario,  # noqa: F401  -- registra Usuario na Base.metadata
 )
 from app.models.tutorial import Base
