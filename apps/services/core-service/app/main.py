@@ -5,12 +5,14 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.auth import router as auth_router
 from app.api.v1.cidades import (
-    router as cidades_router,  #Adiciona a rota do novo arquivo cidades 
+    router as cidades_router,  # Adiciona a rota do novo arquivo cidades
 )
 from app.api.v1.health import router as health_router
 from app.api.v1.hoteis import router as hoteis_router
 from app.api.v1.quartos import router as quartos_router
+from app.api.v1.servico_adicional import router as servico_adicional_router
 from app.api.v1.sobre import router as sobre_router
+from app.api.v1.tarifa_temporada import router as tarifa_temporada_router
 from app.core.config import settings
 from app.core.database import get_mongo_db
 from app.core.seed_mongo import seed_mongo_users
@@ -42,9 +44,12 @@ app.add_middleware(
 app.include_router(health_router, prefix=settings.API_V1_STR)
 app.include_router(sobre_router, prefix=settings.API_V1_STR)
 app.include_router(auth_router, prefix=settings.API_V1_STR)
-app.include_router(cidades_router, prefix=settings.API_V1_STR)#adiciona include relacionado a nova rota cidade
+app.include_router(cidades_router, prefix=settings.API_V1_STR)
 app.include_router(hoteis_router, prefix=settings.API_V1_STR)
 app.include_router(quartos_router, prefix=settings.API_V1_STR)
+app.include_router(servico_adicional_router, prefix=settings.API_V1_STR)
+app.include_router(tarifa_temporada_router, prefix=settings.API_V1_STR)
+
 
 @app.get("/")
 def read_root():
