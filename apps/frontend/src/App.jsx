@@ -66,7 +66,7 @@ export default function App() {
     }
 
     carregarUsuario()
-  }, [])
+  }, [pagina])
 
   return (
     <div className="bg-light min-vh-100 pb-5">
@@ -99,7 +99,7 @@ export default function App() {
                     usuario.is_admin ? 'btn-danger' : 'btn-primary'
                   }`}
                   type="button"
-                  onClick={() => alert('Perfil do usuário')}
+                  
                 >
                   {usuario.is_admin ? 'Admin' : 'Perfil'}
                 </button>
