@@ -17,6 +17,7 @@ from app.models.tutorial import Base
 
 if TYPE_CHECKING:
     from app.models.quarto import Quarto
+    from app.models.servico_adicional import ServicoAdicional
 
 hotel_comodidades = Table(
     "hotel_comodidades",
@@ -83,9 +84,14 @@ class Hotel(Base):
     )
 
     quartos: Mapped[List["Quarto"]] = relationship(
-    back_populates="hotel",
-    cascade="all, delete-orphan",
-)
+        back_populates="hotel",
+        cascade="all, delete-orphan",
+    )
+
+    servicos_adicionais: Mapped[List["ServicoAdicional"]] = relationship(
+        back_populates="hotel",
+        cascade="all, delete-orphan",
+    )
 
 
 class Comodidade(Base):
@@ -102,4 +108,3 @@ class Comodidade(Base):
         secondary=hotel_comodidades,
         back_populates="comodidades",
     )
-    
