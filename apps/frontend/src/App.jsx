@@ -8,10 +8,16 @@ import VideoComponent from './components/VideoComponent'
 import HoteisRaw from './components/HoteisRaw'
 import InteractiveExamples from './components/InteractiveExamples'
 
+import Login from './components/Login'
+import Cadastro from './components/Cadastro'
+import { apiFetch } from './services/api'
+
 export default function App() {
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [pagina, setPagina] = useState('home')
+  const [usuario, setUsuario] = useState(null)
 
   useEffect(() => {
     fetch('http://localhost:8000/api/v1/sobre')
@@ -30,6 +36,37 @@ export default function App() {
         setLoading(false)
       })
   }, [])
+    useEffect(() => {
+    async function carregarUsuario() {
+      const token = localStorage.getItem('access_token')
+
+      if (!token) {
+        return
+      }
+
+      try {
+        const resposta = await apiFetch('/api/v1/auth/me')
+
+        if (!resposta) {
+          setUsuario(null)
+          setPagina('login')
+          return
+        }
+
+        if (!resposta.ok) {
+          setUsuario(null)
+          return
+        }
+
+        const dados = await resposta.json()
+        setUsuario(dados)
+      } catch (error) {
+        console.error('Erro ao buscar usuário:', error)
+      }
+    }
+
+    carregarUsuario()
+  }, [pagina])
 
   return (
     <div className="bg-light min-vh-100 pb-5">
@@ -53,16 +90,49 @@ export default function App() {
               </li>
             </ul>
             <div className="d-flex align-items-center gap-2">
-              <button className="btn btn-outline-primary btn-sm px-3" type="button">
+              <button className="btn btn-outline-primary btn-sm px-3" type="button" onClick={() => setPagina('login')}>
                 Login
               </button>
-              <button className="btn btn-primary btn-sm px-3" type="button">
-                Perfil
-              </button>
+             {usuario && (
+                <button
+                  className={`btn btn-sm px-3 ${
+                    usuario.is_admin ? 'btn-danger' : 'btn-primary'
+                  }`}
+                  type="button"
+                  
+                >
+                  {usuario.is_admin ? 'Admin' : 'Perfil'}
+                </button>
+                  )}
             </div>
           </div>
         </div>
       </nav>
+
+      {/* TELA DE LOGIN */}
+      {pagina === 'login' && (
+        <div className="container">
+          <Login
+            onCadastro={() => setPagina('cadastro')}
+            onVoltar={() => setPagina('home')}
+            onLogin={() => setPagina('home')}
+          />
+        </div>
+      )}
+
+      {/* TELA DE CADASTRO */}
+      {pagina === 'cadastro' && (
+        <div className="container">
+          <Cadastro
+            onLogin={() => setPagina('login')}
+            onVoltar={() => setPagina('home')}
+          />
+        </div>
+      )}
+
+      {/* HOME */}
+      {pagina === 'home' && ( 
+        <div className="container">
 
       {/* Cabecalho Principal */}
       <div className="container">
@@ -140,6 +210,8 @@ export default function App() {
           <p className="mb-0">&copy; {new Date().getFullYear()} - Disciplina de Estágio II. Desenvolvido pela Equipe {data?.equipe || 'Alpha'}.</p>
         </footer>
       </div>
+      </div>
+      )}
     </div>
   )
 }
