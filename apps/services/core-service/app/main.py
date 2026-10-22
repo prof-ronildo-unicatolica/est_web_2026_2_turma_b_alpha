@@ -9,7 +9,9 @@ from app.api.v1.comodidades import router as comodidades_router
 from app.api.v1.health import router as health_router
 from app.api.v1.hoteis import router as hoteis_router
 from app.api.v1.quartos import router as quartos_router
+from app.api.v1.servico_adicional import router as servico_adicional_router
 from app.api.v1.sobre import router as sobre_router
+from app.api.v1.tarifa_temporada import router as tarifa_temporada_router
 from app.core.config import settings
 from app.core.database import get_mongo_db
 from app.core.seed_mongo import seed_mongo_users
@@ -43,6 +45,8 @@ app.include_router(cidades_router, prefix=settings.API_V1_STR)
 app.include_router(hoteis_router, prefix=settings.API_V1_STR)
 app.include_router(quartos_router, prefix=settings.API_V1_STR)
 app.include_router(comodidades_router, prefix=settings.API_V1_STR)
+app.include_router(servico_adicional_router, prefix=settings.API_V1_STR)
+app.include_router(tarifa_temporada_router, prefix=settings.API_V1_STR)
 
 
 @app.get("/")

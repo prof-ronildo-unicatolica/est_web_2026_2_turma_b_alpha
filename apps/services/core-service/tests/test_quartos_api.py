@@ -5,6 +5,7 @@ import pytest
 from app.api.deps import get_current_admin
 from app.main import app
 from app.models.hotel import Cidade, Hotel
+from unittest.mock import AsyncMock, patch
 
 BASE = "/api/v1/quartos"
 
@@ -26,6 +27,95 @@ def hotel(db_session):
     db_session.refresh(hotel)
 
     return hotel
+
+@patch(
+    "app.api.v1.quartos.CatalogoHoteisService.sincronizar_hotel",
+    new_callable=AsyncMock,
+)
+def test_admin_cria_quarto_sincroniza_catalogo(
+    mock_sync,
+    client,
+    hotel,
+    admin_override,
+):
+    response = client.post(
+        BASE,
+        json={
+            "tipo": "Luxo",
+            "preco_diaria": "350.00",
+            "max_adultos": 2,
+            "max_criancas": 1,
+            "hotel_id": str(hotel.id),
+        },
+    )
+
+    assert response.status_code == 201
+
+    mock_sync.assert_awaited_once_with(hotel.id)
+    
+    
+@patch(#para atualizaçao
+    "app.api.v1.quartos.CatalogoHoteisService.sincronizar_hotel",
+    new_callable=AsyncMock,
+)
+def test_admin_atualiza_quarto_sincroniza_catalogo(
+    mock_sync,
+    client,
+    hotel,
+    db_session,
+    admin_override,
+):
+    from app.services.quarto_service import QuartoService
+
+    quarto = QuartoService(db_session).criar(
+        tipo="Standard",
+        preco_diaria=Decimal("180.00"),
+        max_adultos=2,
+        max_criancas=0,
+        hotel_id=hotel.id,
+    )
+
+    response = client.put(
+        f"{BASE}/{quarto.id}",
+        json={
+            "tipo": "Suíte",
+            "preco_diaria": "400.00",
+            "max_adultos": 3,
+            "max_criancas": 2,
+            "hotel_id": str(hotel.id),
+        },
+    )
+
+    assert response.status_code == 200
+
+    mock_sync.assert_awaited_once_with(hotel.id)
+    
+@patch(#para exclusao
+    "app.api.v1.quartos.CatalogoHoteisService.sincronizar_hotel",
+    new_callable=AsyncMock,
+)
+def test_admin_exclui_quarto_sincroniza_catalogo(
+    mock_sync,
+    client,
+    hotel,
+    db_session,
+    admin_override,
+):
+    from app.services.quarto_service import QuartoService
+
+    quarto = QuartoService(db_session).criar(
+        tipo="Standard",
+        preco_diaria=Decimal("180.00"),
+        max_adultos=2,
+        max_criancas=0,
+        hotel_id=hotel.id,
+    )
+
+    response = client.delete(f"{BASE}/{quarto.id}")
+
+    assert response.status_code == 204
+
+    mock_sync.assert_awaited_once_with(hotel.id)
 
 
 @pytest.fixture

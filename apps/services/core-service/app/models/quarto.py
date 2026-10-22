@@ -1,6 +1,6 @@
 import uuid
 from decimal import Decimal
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from sqlalchemy import CheckConstraint, ForeignKey, Integer, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -9,6 +9,8 @@ from app.models.tutorial import Base
 
 if TYPE_CHECKING:
     from app.models.hotel import Hotel
+    from app.models.tarifa_temporada import TarifaTemporada
+
 
 class Quarto(Base):
     __tablename__ = "quartos"
@@ -53,4 +55,8 @@ class Quarto(Base):
     hotel: Mapped["Hotel"] = relationship(
         back_populates="quartos",
     )
-    
+
+    tarifas_temporada: Mapped[List["TarifaTemporada"]] = relationship(
+        back_populates="quarto",
+        cascade="all, delete-orphan",
+    )

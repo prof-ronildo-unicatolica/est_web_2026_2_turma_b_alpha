@@ -4,12 +4,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_admin
-from app.core.database import get_db
+from app.core.database import get_db, get_mongo_db
 from app.schemas.hotel import (
     HotelCreateSchema,
     HotelResponseSchema,
     HotelUpdateSchema,
 )
+from app.services.catalogo_hoteis_service import CatalogoHoteisService
 from app.services.hotel_service import (
     CidadeNaoEncontradaError,
     HotelNaoEncontradoError,
@@ -25,17 +26,27 @@ router = APIRouter(prefix="/hoteis", tags=["Hoteis"])
     status_code=status.HTTP_201_CREATED,
     summary="Cria um hotel vinculado a uma cidade",
 )
-def criar_hotel(
+async def criar_hotel(
     payload: HotelCreateSchema,
     db: Session = Depends(get_db),
+    mongo_db=Depends(get_mongo_db),
     _admin: dict = Depends(get_current_admin),
 ):
+    service = HotelService(db)
+
     try:
-        return HotelService(db).criar(
+        hotel = service.criar(
             nome=payload.nome,
             cidade_id=payload.cidade_id,
             estrelas=payload.estrelas,
         )
+
+        await CatalogoHoteisService(
+            db=db,
+            mongo_db=mongo_db,
+        ).sincronizar_hotel(hotel.id)
+
+        return hotel
     except CidadeNaoEncontradaError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
