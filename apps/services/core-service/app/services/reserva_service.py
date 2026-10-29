@@ -80,10 +80,11 @@ def _calcular_valor_diaria(
     if tarifa is None:
         return preco_base
 
-    if tarifa.preco_diferenciado is not None:
-        return Decimal(tarifa.preco_diferenciado)
+    preco_diferenciado = tarifa.preco_diferenciado
+    if preco_diferenciado is None:
+        return preco_base * Decimal(tarifa.multiplicador)
 
-    return preco_base * Decimal(tarifa.multiplicador)
+    return Decimal(preco_diferenciado)
 
 
 def _calcular_diarias(
@@ -115,14 +116,14 @@ def _calcular_adicional_hospedes(
     subtotal_diarias: Decimal,
     hospedes: Sequence[Hospede],
 ) -> Decimal:
-    adicional = ZERO
-
-    for hospede in hospedes:
-        if 0 <= hospede.idade <= 5:
-            continue
-
-        if 6 <= hospede.idade <= 12:
-            adicional += subtotal_diarias * PERCENTUAL_CRIANCA
+    adicional = sum(
+        (
+            subtotal_diarias * PERCENTUAL_CRIANCA
+            for hospede in hospedes
+            if 6 <= hospede.idade <= 12
+        ),
+        start=ZERO,
+    )
 
     return _moeda(adicional)
 
@@ -132,15 +133,9 @@ def _calcular_early_late(
     early_check_in: bool,
     late_check_out: bool,
 ) -> Decimal:
-    adicional = ZERO
+    quantidade_adicionais = int(early_check_in) + int(late_check_out)
 
-    if early_check_in:
-        adicional += primeira_diaria * PERCENTUAL_EARLY_LATE
-
-    if late_check_out:
-        adicional += primeira_diaria * PERCENTUAL_EARLY_LATE
-
-    return _moeda(adicional)
+    return _moeda(primeira_diaria * PERCENTUAL_EARLY_LATE * quantidade_adicionais)
 
 
 def _calcular_servicos(
@@ -202,18 +197,13 @@ def calcular_preco_reserva(
     )
 
     subtotal = (
-        subtotal_diarias
-        + adicional_hospedes
-        + adicional_early_late
-        + total_servicos
+        subtotal_diarias + adicional_hospedes + adicional_early_late + total_servicos
     )
 
     desconto_nao_reembolsavel = ZERO
 
     if entrada.nao_reembolsavel:
-        desconto_nao_reembolsavel = _moeda(
-            subtotal * PERCENTUAL_NAO_REEMBOLSAVEL
-        )
+        desconto_nao_reembolsavel = _moeda(subtotal * PERCENTUAL_NAO_REEMBOLSAVEL)
 
     total = _moeda(subtotal - desconto_nao_reembolsavel)
 
