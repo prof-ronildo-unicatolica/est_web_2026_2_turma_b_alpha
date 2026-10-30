@@ -190,9 +190,10 @@ function salvarEdicaoHotel(event) {
                     }
                 >
                   <div className="mb-3">
-                    <label className="form-label">Nome</label>
+                    <label className="form-label" htmlFor="nome">Nome</label>
 
                     <input
+                      id="nome"
                       type="text"
                       className="form-control"
                       value={nomeCidade}
@@ -203,9 +204,10 @@ function salvarEdicaoHotel(event) {
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">Estado</label>
+                    <label className="form-label" htmlFor="estado">Estado</label>
 
                     <input
+                      id="estado"
                       type="text"
                       className="form-control"
                       maxLength="2"
@@ -289,11 +291,12 @@ function salvarEdicaoHotel(event) {
               }
             > 
             <div className="mb-3">
-              <label className="form-label">
+              <label className="form-label" htmlFor="campo">
                 Nome do hotel
               </label>
 
               <input
+                id="campo"
                 type="text"
                 className="form-control"
                 placeholder="Digite o nome do hotel"
@@ -305,11 +308,12 @@ function salvarEdicaoHotel(event) {
             </div>
 
             <div className="mb-3">
-              <label className="form-label">
+              <label className="form-label" htmlFor="cidadeHotel">
                 Cidade
               </label>
 
               <input
+                id="cidadeHotel"
                 type="text"
                 className="form-control"
                 placeholder="Digite a cidade"
@@ -321,11 +325,12 @@ function salvarEdicaoHotel(event) {
             </div>
 
             <div className="mb-3">
-              <label className="form-label">
+              <label className="form-label" htmlFor="estrelasHotel">
                 Estrelas
               </label>
 
               <select
+                id="estrelasHotel"
                 className="form-select"
                 value={estrelasHotel}
                 onChange={(event) =>
