@@ -11,6 +11,7 @@ export default function AdminCatalogo() {
   const [nomeCidade, setNomeCidade] = useState('')
   const [estadoCidade, setEstadoCidade] = useState('')
   const [erro, setErro] = useState('')
+  const [cidadeEditando, setCidadeEditando] = useState(null)
 
   const [hoteis, setHoteis] = useState([
   {
@@ -30,6 +31,7 @@ export default function AdminCatalogo() {
 const [nomeHotel, setNomeHotel] = useState('')
 const [cidadeHotel, setCidadeHotel] = useState('')
 const [estrelasHotel, setEstrelasHotel] = useState('1')
+const [hotelEditando, setHotelEditando] = useState(null)
 
   function cadastrarCidade(event) {
     event.preventDefault()
@@ -51,6 +53,38 @@ const [estrelasHotel, setEstrelasHotel] = useState('1')
     setEstadoCidade('')
     setErro('')
   }
+  function editarCidade(cidade) {
+  setCidadeEditando(cidade.id)
+  setNomeCidade(cidade.nome)
+  setEstadoCidade(cidade.estado)
+  setErro('')
+}
+
+function salvarEdicaoCidade(event) {
+  event.preventDefault()
+
+  if (!nomeCidade.trim() || !estadoCidade.trim()) {
+    setErro('Preencha o nome da cidade e o estado.')
+    return
+  }
+
+  setCidades(
+    cidades.map((cidade) =>
+      cidade.id === cidadeEditando
+        ? {
+            ...cidade,
+            nome: nomeCidade,
+            estado: estadoCidade.toUpperCase(),
+          }
+        : cidade
+    )
+  )
+
+  setCidadeEditando(null)
+  setNomeCidade('')
+  setEstadoCidade('')
+  setErro('')
+}
 
   function cadastrarHotel(event) {
   event.preventDefault()
@@ -69,6 +103,42 @@ const [estrelasHotel, setEstrelasHotel] = useState('1')
 
   setHoteis([...hoteis, novoHotel])
 
+  setNomeHotel('')
+  setCidadeHotel('')
+  setEstrelasHotel('1')
+  setErro('')
+}
+
+function editarHotel(hotel) {
+  setHotelEditando(hotel.id)
+  setNomeHotel(hotel.nome)
+  setCidadeHotel(hotel.cidade)
+  setEstrelasHotel(String(hotel.estrelas))
+  setErro('')
+}
+
+function salvarEdicaoHotel(event) {
+  event.preventDefault()
+
+  if (!nomeHotel.trim() || !cidadeHotel.trim()) {
+    setErro('Preencha o nome do hotel e a cidade.')
+    return
+  }
+
+  setHoteis(
+    hoteis.map((hotel) =>
+      hotel.id === hotelEditando
+        ? {
+            ...hotel,
+            nome: nomeHotel,
+            cidade: cidadeHotel,
+            estrelas: Number(estrelasHotel),
+          }
+        : hotel
+    )
+  )
+
+  setHotelEditando(null)
   setNomeHotel('')
   setCidadeHotel('')
   setEstrelasHotel('1')
@@ -108,13 +178,22 @@ const [estrelasHotel, setEstrelasHotel] = useState('1')
           <div className="col-md-4">
             <div className="card shadow-sm">
               <div className="card-body">
-                <h2 className="h5">Cadastrar Cidade</h2>
+                <h2 className="h5">
+                  {cidadeEditando ? 'Editar Cidade' : 'Cadastrar Cidade'}
+                </h2>
 
-                <form onSubmit={cadastrarCidade}>
+                <form
+                  onSubmit={
+                    cidadeEditando
+                      ?salvarEdicaoCidade
+                      : cadastrarCidade
+                    }
+                >
                   <div className="mb-3">
-                    <label className="form-label">Nome</label>
+                    <label className="form-label" htmlFor="nome">Nome</label>
 
                     <input
+                      id="nome"
                       type="text"
                       className="form-control"
                       value={nomeCidade}
@@ -125,9 +204,10 @@ const [estrelasHotel, setEstrelasHotel] = useState('1')
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">Estado</label>
+                    <label className="form-label" htmlFor="estado">Estado</label>
 
                     <input
+                      id="estado"
                       type="text"
                       className="form-control"
                       maxLength="2"
@@ -145,7 +225,7 @@ const [estrelasHotel, setEstrelasHotel] = useState('1')
                   )}
 
                   <button type="submit" className="btn btn-primary">
-                    Cadastrar
+                    {cidadeEditando ? 'Salvar alterações' : 'Cadastrar'}
                   </button>
                 </form>
               </div>
@@ -164,6 +244,7 @@ const [estrelasHotel, setEstrelasHotel] = useState('1')
                         <th>ID</th>
                         <th>Cidade</th>
                         <th>Estado</th>
+                        <th>Ações</th>
                       </tr>
                     </thead>
 
@@ -173,6 +254,15 @@ const [estrelasHotel, setEstrelasHotel] = useState('1')
                           <td>{cidade.id}</td>
                           <td>{cidade.nome}</td>
                           <td>{cidade.estado}</td>
+                          <td>
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-outline-primary"
+                              onClick={() => editarCidade(cidade)}
+                            >
+                              Editar
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -189,15 +279,24 @@ const [estrelasHotel, setEstrelasHotel] = useState('1')
     <div className="col-md-4">
       <div className="card shadow-sm">
         <div className="card-body">
-          <h2 className="h5">Cadastrar Hotel</h2>
+          <h2 className="h5">
+            {hotelEditando ? 'Editar Hotel' : 'Cadastrar Hotel'}
+          </h2>
 
-          <form onSubmit={cadastrarHotel}>
+            <form
+              onSubmit={
+              hotelEditando
+                ? salvarEdicaoHotel
+                : cadastrarHotel
+              }
+            > 
             <div className="mb-3">
-              <label className="form-label">
+              <label className="form-label" htmlFor="campo">
                 Nome do hotel
               </label>
 
               <input
+                id="campo"
                 type="text"
                 className="form-control"
                 placeholder="Digite o nome do hotel"
@@ -209,11 +308,12 @@ const [estrelasHotel, setEstrelasHotel] = useState('1')
             </div>
 
             <div className="mb-3">
-              <label className="form-label">
+              <label className="form-label" htmlFor="cidadeHotel">
                 Cidade
               </label>
 
               <input
+                id="cidadeHotel"
                 type="text"
                 className="form-control"
                 placeholder="Digite a cidade"
@@ -225,11 +325,12 @@ const [estrelasHotel, setEstrelasHotel] = useState('1')
             </div>
 
             <div className="mb-3">
-              <label className="form-label">
+              <label className="form-label" htmlFor="estrelasHotel">
                 Estrelas
               </label>
 
               <select
+                id="estrelasHotel"
                 className="form-select"
                 value={estrelasHotel}
                 onChange={(event) =>
@@ -254,7 +355,7 @@ const [estrelasHotel, setEstrelasHotel] = useState('1')
               type="submit"
               className="btn btn-primary"
             >
-              Cadastrar
+              {hotelEditando ? 'Salvar alterações' : 'Cadastrar'}
             </button>
           </form>
         </div>
@@ -274,6 +375,7 @@ const [estrelasHotel, setEstrelasHotel] = useState('1')
                   <th>Hotel</th>
                   <th>Cidade</th>
                   <th>Estrelas</th>
+                  <th>Ações</th>
                 </tr>
               </thead>
 
@@ -284,6 +386,15 @@ const [estrelasHotel, setEstrelasHotel] = useState('1')
                     <td>{hotel.nome}</td>
                     <td>{hotel.cidade}</td>
                     <td>{hotel.estrelas} ⭐</td>
+                    <td>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={() => editarHotel(hotel)}
+                      >
+                        Editar
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

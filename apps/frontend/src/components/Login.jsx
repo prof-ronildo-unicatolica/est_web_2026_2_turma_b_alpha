@@ -67,11 +67,12 @@ export default function Login({ onCadastro, onVoltar, onLogin }) {
               <form onSubmit={handleLogin}>
 
                 <div className="mb-3">
-                  <label className="form-label">
+                  <label className="form-label" htmlFor="email">
                     E-mail
                   </label>
 
                   <input
+                    id="email"
                     type="email"
                     className="form-control"
                     placeholder="Digite seu e-mail"
@@ -82,11 +83,12 @@ export default function Login({ onCadastro, onVoltar, onLogin }) {
                 </div>
 
                 <div className="mb-3">
-                  <label className="form-label">
+                  <label className="form-label" htmlFor="senha">
                     Senha
                   </label>
 
                   <input
+                    id="senha"
                     type="password"
                     className="form-control"
                     placeholder="Digite sua senha"
@@ -118,6 +120,7 @@ export default function Login({ onCadastro, onVoltar, onLogin }) {
                 </p>
 
                 <button
+                  type="button"
                   className="btn btn-outline-primary"
                   onClick={onCadastro}
                 >
@@ -127,6 +130,7 @@ export default function Login({ onCadastro, onVoltar, onLogin }) {
 
               <div className="text-center mt-3">
                 <button
+                  type="button"
                   className="btn btn-link"
                   onClick={onVoltar}
                 >
