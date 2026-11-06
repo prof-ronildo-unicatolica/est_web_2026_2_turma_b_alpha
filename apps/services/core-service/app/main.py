@@ -16,6 +16,7 @@ from app.api.v1.tarifa_temporada import router as tarifa_temporada_router
 from app.core.config import settings
 from app.core.database import get_mongo_db
 from app.core.seed_mongo import seed_mongo_users
+from app.api.v1.reservas import router as reservas_router
 
 
 @asynccontextmanager
@@ -49,6 +50,7 @@ app.include_router(hoteis_router, prefix=settings.API_V1_STR)
 app.include_router(quartos_router, prefix=settings.API_V1_STR)
 app.include_router(servico_adicional_router, prefix=settings.API_V1_STR)
 app.include_router(tarifa_temporada_router, prefix=settings.API_V1_STR)
+app.include_router(reservas_router, prefix=settings.API_V1_STR)
 
 
 @app.get("/")
