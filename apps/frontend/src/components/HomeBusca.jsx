@@ -18,7 +18,7 @@ function HotelSkeleton() {
   )
 }
 
-export default function HomeBusca() {
+export default function HomeBusca({ onCheckout }) {
   const [cidades, setCidades] = useState([])
   const [hoteis, setHoteis] = useState([])
   const [quartosPorHotel, setQuartosPorHotel] = useState({})
@@ -342,6 +342,23 @@ export default function HomeBusca() {
                     <p className="mb-0">
                       Crianças: até {quarto.max_criancas}
                     </p>
+                    <button
+                      type="button"
+                      className="btn btn-primary mt-3"
+                      disabled={!checkIn || !checkOut || checkOut <= checkIn}
+                      onClick={() =>
+                        onCheckout({
+                          hotel: hotelSelecionado,
+                          quarto,
+                          checkIn,
+                          checkOut,
+                          adultos: Number(adultos),
+                          criancas: Number(criancas),
+                        })
+                      }
+                    >
+                      Continuar para checkout
+                    </button>
                   </div>
                 </div>
               ))}
