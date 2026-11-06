@@ -4,10 +4,12 @@ import Cadastro from './components/Cadastro'
 import HomeBusca from './components/HomeBusca'
 import Login from './components/Login'
 import { apiFetch } from './services/api'
+import Checkout from './components/Checkout'
 
 export default function App() {
   const [pagina, setPagina] = useState('home')
   const [usuario, setUsuario] = useState(null)
+  const [reservaSelecionada, setReservaSelecionada] = useState(null)
 
   useEffect(() => {
     async function carregarUsuario() {
@@ -152,8 +154,21 @@ export default function App() {
       {/* HOME */}
       {pagina === 'home' && (
         <div className="container pb-5">
-          <HomeBusca />
+          <HomeBusca 
+            onCheckout={(dados) => {
+              setReservaSelecionada(dados)
+              setPagina('checkout')
+            }} 
+          />
         </div>
+      )}
+
+      {/* CHECKOUT */}
+       {pagina === 'checkout' && (
+        <Checkout
+          reserva={reservaSelecionada}
+          onVoltar={() => setPagina('home')}
+        />
       )}
     </div>
   )
