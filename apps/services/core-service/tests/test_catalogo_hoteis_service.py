@@ -1,3 +1,4 @@
+
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
@@ -68,23 +69,45 @@ async def test_sincronizar_hotel_cria_projecao(
 
     assert args[0] == {
         "_id": str(hotel_com_quarto.id)
-    }
+    }, "A projeção deveria utilizar o ID do hotel como identificador no MongoDB."
 
     documento = args[1]
 
-    assert documento["_id"] == str(hotel_com_quarto.id)
-    assert documento["hotel_id"] == str(hotel_com_quarto.id)
-    assert documento["nome"] == "Hotel Catálogo"
-    assert documento["estrelas"] == 4
-    assert documento["cidade"]["nome"] == "Quixadá"
+    assert documento["_id"] == str(hotel_com_quarto.id), (
+        "O documento deveria conter o ID do hotel no campo '_id'."
+    )
+    assert documento["hotel_id"] == str(hotel_com_quarto.id), (
+        "O campo 'hotel_id' deveria corresponder ao ID do hotel sincronizado."
+    )
+    assert documento["nome"] == "Hotel Catálogo", (
+        "O documento deveria preservar o nome original do hotel."
+    )
+    assert documento["estrelas"] == 4, (
+        "O documento deveria preservar a classificação de estrelas do hotel."
+    )
+    assert documento["cidade"]["nome"] == "Quixadá", (
+        "O documento deveria conter o nome da cidade associada ao hotel."
+    )
 
-    assert len(documento["quartos"]) == 1
-    assert documento["quartos"][0]["tipo"] == "Deluxe"
-    assert documento["quartos"][0]["preco_diaria"] == 350.00
-    assert documento["quartos"][0]["max_adultos"] == 2
-    assert documento["quartos"][0]["max_criancas"] == 2
+    assert len(documento["quartos"]) == 1, (
+        "A projeção deveria conter exatamente o quarto cadastrado para o hotel."
+    )
+    assert documento["quartos"][0]["tipo"] == "Deluxe", (
+        "O quarto projetado deveria preservar o tipo cadastrado."
+    )
+    assert documento["quartos"][0]["preco_diaria"] == 350.00, (
+        "O quarto projetado deveria preservar o preço da diária."
+    )
+    assert documento["quartos"][0]["max_adultos"] == 2, (
+        "O quarto projetado deveria preservar a quantidade máxima de adultos."
+    )
+    assert documento["quartos"][0]["max_criancas"] == 2, (
+        "O quarto projetado deveria preservar a quantidade máxima de crianças."
+    )
 
-    assert kwargs == {"upsert": True}
+    assert kwargs == {"upsert": True}, (
+        "A sincronização deveria utilizar upsert para criar ou atualizar a projeção."
+    )
 
 
 @pytest.mark.asyncio
@@ -103,13 +126,18 @@ async def test_sincronizar_hotel_e_idempotente(
 
     collection = mongo_db["catalogo_hoteis"]
 
-    assert collection.replace_one.await_count == 2
+    assert collection.replace_one.await_count == 2, (
+        "Duas sincronizações deveriam executar exatamente duas operações de atualização."
+    )
 
     for call in collection.replace_one.await_args_list:
         assert call.args[0] == {
             "_id": str(hotel_com_quarto.id)
-        }
-        assert call.kwargs["upsert"] is True
+        }, "Cada sincronização deveria utilizar o ID correto do hotel."
+
+        assert call.kwargs["upsert"] is True, (
+            "Cada sincronização deveria manter o upsert habilitado."
+        )
 
 
 @pytest.mark.asyncio

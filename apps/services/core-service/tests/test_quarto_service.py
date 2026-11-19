@@ -41,12 +41,12 @@ def test_criar_quarto(db_session, hotel):
         hotel_id=hotel.id,
     )
 
-    assert quarto.id is not None
-    assert quarto.tipo == "Casal"
-    assert quarto.preco_diaria == Decimal("250.00")
-    assert quarto.max_adultos == 2
-    assert quarto.max_criancas == 1
-    assert quarto.hotel_id == hotel.id
+    assert quarto.id is not None, "O quarto criado deveria possuir um ID."
+    assert quarto.tipo == "Casal", "O tipo do quarto deveria ser Casal."
+    assert quarto.preco_diaria == Decimal("250.00"), "O preço da diária deveria ser R$ 250,00."
+    assert quarto.max_adultos == 2, "A capacidade máxima de adultos deveria ser 2."
+    assert quarto.max_criancas == 1, "A capacidade máxima de crianças deveria ser 1."
+    assert quarto.hotel_id == hotel.id, "O quarto deveria estar associado ao hotel informado."
 
 
 def test_criar_quarto_com_hotel_inexistente(db_session):
@@ -111,10 +111,10 @@ def test_atualizar_quarto(db_session, hotel):
         hotel_id=hotel.id,
     )
 
-    assert atualizado.tipo == "Luxo"
-    assert atualizado.preco_diaria == Decimal("300.00")
-    assert atualizado.max_adultos == 3
-    assert atualizado.max_criancas == 2
+    assert atualizado.tipo == "Luxo", "O tipo do quarto deveria ter sido atualizado para Luxo."
+    assert atualizado.preco_diaria == Decimal("300.00"), "O preço da diária deveria ter sido atualizado para R$ 300,00."
+    assert atualizado.max_adultos == 3, "A capacidade máxima de adultos deveria ter sido atualizada para 3."
+    assert atualizado.max_criancas == 2, "A capacidade máxima de crianças deveria ter sido atualizada para 2."
 
 
 def test_excluir_quarto(db_session, hotel):
