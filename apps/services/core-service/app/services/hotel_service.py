@@ -1,75 +1,194 @@
 from sqlalchemy.orm import Session
 
-from app.models.hotel import Cidade, Hotel
-from app.repositories.hotel_repository import CidadeRepository, HotelRepository
-
-
-# --- Excecoes de dominio -----------------------------------------------------
-# Nao herdam de HTTPException de proposito: o service nao conhece HTTP.
-# Quem traduz isto em status code e a camada de rota (issues #15 e #16).
+from app.models.hotel import Cidade, Comodidade, Hotel
+from app.repositories.hotel_repository import (
+    CidadeRepository,
+    ComodidadeRepository,
+    HotelRepository,
+)
 
 
 class RegraDeNegocioError(Exception):
-    """Base de todas as excecoes de negocio deste modulo."""
+    """Base das exceções de negócio do catálogo."""
 
 
 class CidadeJaExisteError(RegraDeNegocioError):
     pass
 
-
 class CidadeNaoEncontradaError(RegraDeNegocioError):
     pass
 
+class CidadeNaoPodeSerExcluidaError(RegraDeNegocioError):
+    pass
 
-# --- Services ----------------------------------------------------------------
+class HotelNaoEncontradoError(RegraDeNegocioError):
+    pass
 
+class ComodidadeJaExisteError(RegraDeNegocioError):
+    pass
+
+class ComodidadeNaoEncontradaError(RegraDeNegocioError):
+    pass
 
 class CidadeService:
     def __init__(self, db: Session):
         self.repository = CidadeRepository(db)
 
     def criar(self, nome: str) -> Cidade:
-        # Normalizacao ANTES de qualquer validacao: " fortaleza " e "Fortaleza"
-        # sao a mesma cidade para um ser humano, mas nao para o UNIQUE do banco.
         nome = nome.strip()
 
         if self.repository.get_by_nome(nome):
-            raise CidadeJaExisteError(f"Ja existe uma cidade chamada '{nome}'.")
+            raise CidadeJaExisteError(
+                f"Ja existe uma cidade chamada '{nome}'."
+            )
 
         return self.repository.create(nome=nome)
 
     def listar(self) -> list[Cidade]:
         return self.repository.list()
 
+    def atualizar(self, cidade_id, nome: str) -> Cidade:
+        cidade = self.repository.get_by_id(cidade_id)
+
+        if not cidade:
+            raise CidadeNaoEncontradaError(
+                f"Nao existe cidade com id '{cidade_id}'."
+            )
+
+        nome = nome.strip()
+
+        outra = self.repository.get_by_nome(nome)
+        if outra and outra.id != cidade.id:
+            raise CidadeJaExisteError(
+                f"Ja existe uma cidade chamada '{nome}'."
+            )
+
+        return self.repository.update(cidade, nome)
+
+    def excluir(self, cidade_id) -> None:
+        cidade = self.repository.get_by_id(cidade_id)
+
+        if not cidade:
+            raise CidadeNaoEncontradaError(
+                f"Nao existe cidade com id '{cidade_id}'."
+            )
+
+        self.repository.delete(cidade)
+
 
 class HotelService:
     def __init__(self, db: Session):
         self.repository = HotelRepository(db)
-        # O HotelService precisa CONSULTAR cidades para validar o vinculo.
-        # Ele usa o repository de cidade, e nao o CidadeService: dependencia
-        # entre services vira ciclo com facilidade.
         self.cidades = CidadeRepository(db)
 
-    def criar(self, nome: str, cidade_id) -> Hotel:
+    def criar(
+        self,
+        nome: str,
+        cidade_id,
+        estrelas: int = 3,
+    ) -> Hotel:
         nome = nome.strip()
 
-        # A validacao que faltava na issue #13. Sem ela, um UUID inexistente
-        # estoura como IntegrityError cru do PostgreSQL -> resposta 500.
-        # Com ela, vira um 404 com mensagem legivel.
         if not self.cidades.get_by_id(cidade_id):
             raise CidadeNaoEncontradaError(
                 f"Nao existe cidade com id '{cidade_id}'."
             )
 
-        return self.repository.create(nome=nome, cidade_id=cidade_id)
+        return self.repository.create(
+            nome=nome,
+            cidade_id=cidade_id,
+            estrelas=estrelas,
+        )
 
     def listar(self, cidade_id=None) -> list[Hotel]:
-        # Um metodo so, com filtro opcional: e o que a rota GET /hoteis
-        # precisa para aceitar ?cidade_id=... sem duplicar codigo.
         if cidade_id is not None:
             if not self.cidades.get_by_id(cidade_id):
                 raise CidadeNaoEncontradaError(
                     f"Nao existe cidade com id '{cidade_id}'."
                 )
+
             return self.repository.list_by_cidade(cidade_id)
+
         return self.repository.list()
+
+    def atualizar(
+        self,
+        hotel_id,
+        nome: str,
+        cidade_id,
+        estrelas: int,
+    ) -> Hotel:
+        hotel = self.repository.get_by_id(hotel_id)
+
+        if not hotel:
+            raise HotelNaoEncontradoError(
+                f"Nao existe hotel com id '{hotel_id}'."
+            )
+
+        if not self.cidades.get_by_id(cidade_id):
+            raise CidadeNaoEncontradaError(
+                f"Nao existe cidade com id '{cidade_id}'."
+            )
+
+        return self.repository.update(
+            hotel=hotel,
+            nome=nome.strip(),
+            cidade_id=cidade_id,
+            estrelas=estrelas,
+        )
+
+    def excluir(self, hotel_id) -> None:
+        hotel = self.repository.get_by_id(hotel_id)
+
+        if not hotel:
+            raise HotelNaoEncontradoError(
+                f"Nao existe hotel com id '{hotel_id}'."
+            )
+
+        self.repository.delete(hotel)
+
+
+class ComodidadeService:
+    def __init__(self, db: Session):
+        self.repository = ComodidadeRepository(db)
+
+    def criar(self, nome: str) -> Comodidade:
+        nome = nome.strip()
+
+        if self.repository.get_by_nome(nome):
+            raise ComodidadeJaExisteError(
+                f"Ja existe uma comodidade chamada '{nome}'."
+            )
+
+        return self.repository.create(nome)
+
+    def listar(self) -> list[Comodidade]:
+        return self.repository.list()
+
+    def atualizar(self, comodidade_id, nome: str) -> Comodidade:
+        comodidade = self.repository.get_by_id(comodidade_id)
+
+        if not comodidade:
+            raise ComodidadeNaoEncontradaError(
+                f"Nao existe comodidade com id '{comodidade_id}'."
+            )
+
+        nome = nome.strip()
+
+        outra = self.repository.get_by_nome(nome)
+        if outra and outra.id != comodidade.id:
+            raise ComodidadeJaExisteError(
+                f"Ja existe uma comodidade chamada '{nome}'."
+            )
+
+        return self.repository.update(comodidade, nome)
+
+    def excluir(self, comodidade_id) -> None:
+        comodidade = self.repository.get_by_id(comodidade_id)
+
+        if not comodidade:
+            raise ComodidadeNaoEncontradaError(
+                f"Nao existe comodidade com id '{comodidade_id}'."
+            )
+
+        self.repository.delete(comodidade)
