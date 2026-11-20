@@ -16,14 +16,26 @@ def test_register_retorna_201(client, db_session):
         },
     )
 
-    assert response.status_code == 201
+    assert response.status_code == 201, (
+        "O cadastro de um novo usuario deveria retornar HTTP 201."
+    )
 
     body = response.json()
-    assert body["nome"] == "Cliente Teste"
-    assert body["email"] == "cliente@hotel.com"
-    assert body["is_admin"] is False
-    assert "senha" not in body
-    assert "senha_hash" not in body
+    assert body["nome"] == "Cliente Teste", (
+        "O nome retornado deveria corresponder ao nome informado no cadastro."
+    )
+    assert body["email"] == "cliente@hotel.com", (
+        "O e-mail retornado deveria corresponder ao e-mail informado no cadastro."
+    )
+    assert body["is_admin"] is False, (
+        "Um usuario cadastrado como cliente nao deveria possuir privilegios administrativos."
+    )
+    assert "senha" not in body, (
+        "A resposta do cadastro nao deveria expor a senha do usuario."
+    )
+    assert "senha_hash" not in body, (
+        "A resposta do cadastro nao deveria expor o hash da senha do usuario."
+    )
 
     usuario = (
         db_session.query(Usuario)
@@ -31,9 +43,15 @@ def test_register_retorna_201(client, db_session):
         .first()
     )
 
-    assert usuario is not None
-    assert usuario.senha_hash != "cliente123"
-    assert usuario.is_admin is False
+    assert usuario is not None, (
+        "O usuario cadastrado deveria estar persistido no banco de dados."
+    )
+    assert usuario.senha_hash != "cliente123", (
+        "A senha do usuario deveria ser armazenada como hash, e nao em texto plano."
+    )
+    assert usuario.is_admin is False, (
+        "O usuario persistido deveria possuir privilegios de cliente."
+    )
 
 
 def test_register_email_duplicado_retorna_409(client):
@@ -46,8 +64,12 @@ def test_register_email_duplicado_retorna_409(client):
     primeira = client.post(f"{BASE}/register", json=payload)
     segunda = client.post(f"{BASE}/register", json=payload)
 
-    assert primeira.status_code == 201
-    assert segunda.status_code == 409
+    assert primeira.status_code == 201, (
+        "O primeiro cadastro com o e-mail deveria retornar HTTP 201."
+    )
+    assert segunda.status_code == 409, (
+        "O cadastro com um e-mail ja existente deveria retornar HTTP 409."
+    )
 
 
 def test_login_valido_retorna_jwt(client):
@@ -68,11 +90,17 @@ def test_login_valido_retorna_jwt(client):
         },
     )
 
-    assert response.status_code == 200
+    assert response.status_code == 200, (
+        "O login com credenciais validas deveria retornar HTTP 200."
+    )
 
     body = response.json()
-    assert body["token_type"] == "bearer"
-    assert body["access_token"]
+    assert body["token_type"] == "bearer", (
+        "O tipo de token retornado deveria ser 'bearer'."
+    )
+    assert body["access_token"], (
+        "A resposta do login deveria conter um access_token."
+    )
 
     payload = jwt.decode(
         body["access_token"],
@@ -80,7 +108,9 @@ def test_login_valido_retorna_jwt(client):
         algorithms=[ALGORITHM],
     )
 
-    assert payload["sub"]
+    assert payload["sub"], (
+        "O JWT deveria conter o identificador do usuario no campo 'sub'."
+    )
 
 
 def test_login_jwt_sub_e_id_do_usuario(client, db_session):
@@ -115,7 +145,9 @@ def test_login_jwt_sub_e_id_do_usuario(client, db_session):
         algorithms=[ALGORITHM],
     )
 
-    assert payload["sub"] == str(usuario.id)
+    assert payload["sub"] == str(usuario.id), (
+        "O campo 'sub' do JWT deveria corresponder ao ID do usuario autenticado."
+    )
 
 
 def test_login_senha_invalida_retorna_401(client):
@@ -136,7 +168,9 @@ def test_login_senha_invalida_retorna_401(client):
         },
     )
 
-    assert response.status_code == 401
+    assert response.status_code == 401, (
+        "O login com senha incorreta deveria retornar HTTP 401."
+    )
 
 
 def test_login_email_inexistente_retorna_401(client):
@@ -148,4 +182,6 @@ def test_login_email_inexistente_retorna_401(client):
         },
     )
 
-    assert response.status_code == 401
+    assert response.status_code == 401, (
+        "O login com um e-mail nao cadastrado deveria retornar HTTP 401."
+    )
