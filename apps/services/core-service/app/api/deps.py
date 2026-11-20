@@ -1,4 +1,4 @@
-"""Dependencias de autenticacao e autorizacao."""
+﻿"""Dependencias de autenticacao e autorizacao."""
 
 import uuid
 
@@ -57,6 +57,7 @@ def get_current_user(
         )
 
     return {
+        "id": usuario.id,
         "email": usuario.email,
         "nome": usuario.nome,
         "is_admin": usuario.is_admin,
