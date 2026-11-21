@@ -7,11 +7,17 @@ import Sidebar from './components/Sidebar'
 import VideoComponent from './components/VideoComponent'
 import HoteisRaw from './components/HoteisRaw'
 import InteractiveExamples from './components/InteractiveExamples'
+import Login from './components/Login'
+import Cadastro from './components/Cadastro'
+import { apiFetch } from './services/api'
+import AdminCatalogo from './components/AdminCatalogo'
 
 export default function App() {
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [pagina, setPagina] = useState('home')
+  const [usuario, setUsuario] = useState(null)
 
   useEffect(() => {
     fetch('http://localhost:8000/api/v1/sobre')
@@ -30,6 +36,33 @@ export default function App() {
         setLoading(false)
       })
   }, [])
+
+  if (pagina === 'login') {
+  return (
+    <Login
+      onLogin={() => setPagina('home')}
+      onCadastro={() => setPagina('cadastro')}
+      onVoltar={() => setPagina('home')}
+    />
+  )
+}
+
+if (pagina === 'cadastro') {
+  return (
+    <Cadastro
+      onLogin={() => setPagina('login')}
+      onVoltar={() => setPagina('home')}
+    />
+  )
+}
+
+if (pagina === 'admin') {
+  return (
+    <AdminCatalogo
+      onVoltar={() => setPagina('home')}
+    />
+  )
+}
 
   return (
     <div className="bg-light min-vh-100 pb-5">
@@ -53,7 +86,8 @@ export default function App() {
               </li>
             </ul>
             <div className="d-flex align-items-center gap-2">
-              <button className="btn btn-outline-primary btn-sm px-3" type="button">
+              <button className="btn btn-outline-primary btn-sm px-3" type="button"
+                onClick={() => setPagina('login')}>
                 Login
               </button>
               <button className="btn btn-primary btn-sm px-3" type="button">

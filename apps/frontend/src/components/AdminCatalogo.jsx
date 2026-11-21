@@ -1,157 +1,137 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
-export default function AdminCatalogo() {
+const API = 'http://localhost:8000/api/v1'
+
+export default function AdminCatalogo({ onVoltar }) {
   const [aba, setAba] = useState('cidades')
 
-  const [cidades, setCidades] = useState([
-    { id: 1, nome: 'Fortaleza', estado: 'CE' },
-    { id: 2, nome: 'Quixadá', estado: 'CE' },
-  ])
+   const [cidades, setCidades] = useState([])
+   const [hoteis, setHoteis] = useState([])
 
-  const [nomeCidade, setNomeCidade] = useState('')
-  const [estadoCidade, setEstadoCidade] = useState('')
-  const [erro, setErro] = useState('')
-  const [cidadeEditando, setCidadeEditando] = useState(null)
+   const [carregando, setCarregando] = useState(true)
+   const [erro, setErro] = useState('')
+   useEffect(() => {
+    async function carregarDados() {
+      try {
+        const [resCidades, resHoteis] = await Promise.all([
+          fetch(`${API}/cidades`),
+          fetch(`${API}/hoteis`),
+        ])
 
-  const [hoteis, setHoteis] = useState([
-  {
-    id: 1,
-    nome: 'Hotel Alpha',
-    cidade: 'Fortaleza',
-    estrelas: 4,
-  },
-  {
-    id: 2,
-    nome: 'Hotel Central',
-    cidade: 'Quixadá',
-    estrelas: 3,
-  },
-])
+        if (!resCidades.ok || !resHoteis.ok) {
+          throw new Error('Erro ao carregar dados do catálogo.')
+        }
 
-const [nomeHotel, setNomeHotel] = useState('')
-const [cidadeHotel, setCidadeHotel] = useState('')
-const [estrelasHotel, setEstrelasHotel] = useState('1')
-const [hotelEditando, setHotelEditando] = useState(null)
+        const dadosCidades = await resCidades.json()
+        const dadosHoteis = await resHoteis.json()
 
-  function cadastrarCidade(event) {
-    event.preventDefault()
-
-    if (!nomeCidade.trim() || !estadoCidade.trim()) {
-      setErro('Preencha o nome da cidade e o estado.')
-      return
+        setCidades(dadosCidades)
+        setHoteis(dadosHoteis)
+      } catch (error) {
+        setErro(error.message)
+      } finally {
+        setCarregando(false)
+      }
     }
 
-    const novaCidade = {
-      id: cidades.length + 1,
-      nome: nomeCidade,
-      estado: estadoCidade.toUpperCase(),
+  carregarDados()
+}, [])
+
+   const [nomeCidade, setNomeCidade] = useState('')
+   const [nomeHotel, setNomeHotel] = useState('')
+   const [cidadeHotel, setCidadeHotel] = useState('')
+
+async function cadastrarCidade(event) {
+  event.preventDefault()
+
+  if (!nomeCidade.trim()) {
+    setErro('Preencha o nome da cidade.')
+    return
+  }
+
+  try {
+    const resposta = await fetch(`${API}/cidades`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        nome: nomeCidade.trim(),
+      }),
+    })
+
+    const dados = await resposta.json()
+
+    if (!resposta.ok) {
+      throw new Error(dados.detail || 'Erro ao cadastrar cidade.')
     }
 
-    setCidades([...cidades, novaCidade])
-
+    setCidades([...cidades, dados])
     setNomeCidade('')
-    setEstadoCidade('')
     setErro('')
+  } catch (error) {
+    setErro(error.message)
   }
-  function editarCidade(cidade) {
-  setCidadeEditando(cidade.id)
-  setNomeCidade(cidade.nome)
-  setEstadoCidade(cidade.estado)
-  setErro('')
 }
 
-function salvarEdicaoCidade(event) {
+
+async function cadastrarHotel(event) {
   event.preventDefault()
 
-  if (!nomeCidade.trim() || !estadoCidade.trim()) {
-    setErro('Preencha o nome da cidade e o estado.')
+  if (!nomeHotel.trim() || !cidadeHotel) {
+    setErro('Preencha o nome do hotel e selecione a cidade.')
     return
   }
 
-  setCidades(
-    cidades.map((cidade) =>
-      cidade.id === cidadeEditando
-        ? {
-            ...cidade,
-            nome: nomeCidade,
-            estado: estadoCidade.toUpperCase(),
-          }
-        : cidade
-    )
-  )
+  try {
+    const resposta = await fetch(`${API}/hoteis`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        nome: nomeHotel.trim(),
+        cidade_id: cidadeHotel,
+      }),
+    })
 
-  setCidadeEditando(null)
-  setNomeCidade('')
-  setEstadoCidade('')
-  setErro('')
-}
+    const dados = await resposta.json()
 
-  function cadastrarHotel(event) {
-  event.preventDefault()
+    if (!resposta.ok) {
+      throw new Error(dados.detail || 'Erro ao cadastrar hotel.')
+    }
 
-  if (!nomeHotel.trim() || !cidadeHotel.trim()) {
-    setErro('Preencha o nome do hotel e a cidade.')
-    return
+    setHoteis([...hoteis, dados])
+    setNomeHotel('')
+    setCidadeHotel('')
+    setErro('')
+  } catch (error) {
+    setErro(error.message)
   }
-
-  const novoHotel = {
-    id: hoteis.length + 1,
-    nome: nomeHotel,
-    cidade: cidadeHotel,
-    estrelas: Number(estrelasHotel),
-  }
-
-  setHoteis([...hoteis, novoHotel])
-
-  setNomeHotel('')
-  setCidadeHotel('')
-  setEstrelasHotel('1')
-  setErro('')
 }
 
-function editarHotel(hotel) {
-  setHotelEditando(hotel.id)
-  setNomeHotel(hotel.nome)
-  setCidadeHotel(hotel.cidade)
-  setEstrelasHotel(String(hotel.estrelas))
-  setErro('')
-}
 
-function salvarEdicaoHotel(event) {
-  event.preventDefault()
-
-  if (!nomeHotel.trim() || !cidadeHotel.trim()) {
-    setErro('Preencha o nome do hotel e a cidade.')
-    return
-  }
-
-  setHoteis(
-    hoteis.map((hotel) =>
-      hotel.id === hotelEditando
-        ? {
-            ...hotel,
-            nome: nomeHotel,
-            cidade: cidadeHotel,
-            estrelas: Number(estrelasHotel),
-          }
-        : hotel
-    )
-  )
-
-  setHotelEditando(null)
-  setNomeHotel('')
-  setCidadeHotel('')
-  setEstrelasHotel('1')
-  setErro('')
-}
 
   return (
     <div className="container py-4">
+      <button
+      type="button"
+      className="btn btn-outline-secondary mb-3"
+      onClick={onVoltar}
+    >
+      ← Voltar 
+    </button>
       <h1 className="fw-bold">Painel Administrativo</h1>
 
       <p className="text-secondary">
         Gerenciamento de Cidades e Hotéis
       </p>
+
+      {carregando && (
+        <div className="alert alert-info">
+          Carregando dados do catálogo...
+        </div>
+      )}
 
       <div className="d-flex gap-2 mb-4">
         <button
@@ -166,7 +146,9 @@ function salvarEdicaoHotel(event) {
 
         <button
           type="button"
-          className="btn btn-outline-primary"
+          className={`btn ${
+            aba === 'hoteis' ? 'btn-primary' : 'btn-outline-primary'
+          }`}
           onClick={() => setAba('hoteis')}
         >
           Hotéis
@@ -179,40 +161,19 @@ function salvarEdicaoHotel(event) {
             <div className="card shadow-sm">
               <div className="card-body">
                 <h2 className="h5">
-                  {cidadeEditando ? 'Editar Cidade' : 'Cadastrar Cidade'}
+                  Cadastrar Cidade
                 </h2>
 
-                <form
-                  onSubmit={
-                    cidadeEditando
-                      ?salvarEdicaoCidade
-                      : cadastrarCidade
-                    }
-                >
+                <form onSubmit={cadastrarCidade}>
                   <div className="mb-3">
-                    <label className="form-label">Nome</label>
+                    <label className="form-label">Nome da cidade</label>
 
                     <input
                       type="text"
                       className="form-control"
+                      placeholder="Digite o nome da cidade"
                       value={nomeCidade}
-                      onChange={(event) =>
-                        setNomeCidade(event.target.value)
-                      }
-                    />
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="form-label">Estado</label>
-
-                    <input
-                      type="text"
-                      className="form-control"
-                      maxLength="2"
-                      value={estadoCidade}
-                      onChange={(event) =>
-                        setEstadoCidade(event.target.value)
-                      }
+                      onChange={(event) => setNomeCidade(event.target.value)}
                     />
                   </div>
 
@@ -223,7 +184,7 @@ function salvarEdicaoHotel(event) {
                   )}
 
                   <button type="submit" className="btn btn-primary">
-                    {cidadeEditando ? 'Salvar alterações' : 'Cadastrar'}
+                    Cadastrar
                   </button>
                 </form>
               </div>
@@ -241,8 +202,6 @@ function salvarEdicaoHotel(event) {
                       <tr>
                         <th>ID</th>
                         <th>Cidade</th>
-                        <th>Estado</th>
-                        <th>Ações</th>
                       </tr>
                     </thead>
 
@@ -251,16 +210,6 @@ function salvarEdicaoHotel(event) {
                         <tr key={cidade.id}>
                           <td>{cidade.id}</td>
                           <td>{cidade.nome}</td>
-                          <td>{cidade.estado}</td>
-                          <td>
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-outline-primary"
-                              onClick={() => editarCidade(cidade)}
-                            >
-                              Editar
-                            </button>
-                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -278,15 +227,11 @@ function salvarEdicaoHotel(event) {
       <div className="card shadow-sm">
         <div className="card-body">
           <h2 className="h5">
-            {hotelEditando ? 'Editar Hotel' : 'Cadastrar Hotel'}
+            Cadastrar Hotel
           </h2>
 
             <form
-              onSubmit={
-              hotelEditando
-                ? salvarEdicaoHotel
-                : cadastrarHotel
-              }
+              onSubmit={cadastrarHotel}
             > 
             <div className="mb-3">
               <label className="form-label">
@@ -309,36 +254,22 @@ function salvarEdicaoHotel(event) {
                 Cidade
               </label>
 
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Digite a cidade"
-                value={cidadeHotel}
-                onChange={(event) =>
-                  setCidadeHotel(event.target.value)
-                }
-              />
-            </div>
-
-            <div className="mb-3">
-              <label className="form-label">
-                Estrelas
-              </label>
-
               <select
                 className="form-select"
-                value={estrelasHotel}
-                onChange={(event) =>
-                  setEstrelasHotel(event.target.value)
-                }
+                value={cidadeHotel}
+                onChange={(event) => setCidadeHotel(event.target.value)}
               >
-                <option value="1">1 estrela</option>
-                <option value="2">2 estrelas</option>
-                <option value="3">3 estrelas</option>
-                <option value="4">4 estrelas</option>
-                <option value="5">5 estrelas</option>
+                <option value="">Selecione uma cidade</option>
+
+                {cidades.map((cidade) => (
+                  <option key={cidade.id} value={cidade.id}>
+                    {cidade.nome}
+                  </option>
+                ))}
               </select>
             </div>
+
+            
 
             {erro && (
               <div className="alert alert-danger">
@@ -350,7 +281,7 @@ function salvarEdicaoHotel(event) {
               type="submit"
               className="btn btn-primary"
             >
-              {hotelEditando ? 'Salvar alterações' : 'Cadastrar'}
+              Cadastrar
             </button>
           </form>
         </div>
@@ -369,8 +300,6 @@ function salvarEdicaoHotel(event) {
                   <th>ID</th>
                   <th>Hotel</th>
                   <th>Cidade</th>
-                  <th>Estrelas</th>
-                  <th>Ações</th>
                 </tr>
               </thead>
 
@@ -379,17 +308,7 @@ function salvarEdicaoHotel(event) {
                   <tr key={hotel.id}>
                     <td>{hotel.id}</td>
                     <td>{hotel.nome}</td>
-                    <td>{hotel.cidade}</td>
-                    <td>{hotel.estrelas} ⭐</td>
-                    <td>
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-outline-primary"
-                        onClick={() => editarHotel(hotel)}
-                      >
-                        Editar
-                      </button>
-                    </td>
+                    <td>{hotel.cidade?.nome}</td>
                   </tr>
                 ))}
               </tbody>
