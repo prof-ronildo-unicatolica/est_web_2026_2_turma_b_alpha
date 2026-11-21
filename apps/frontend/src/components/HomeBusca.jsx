@@ -2,6 +2,16 @@ import { useEffect, useMemo, useState } from 'react'
 
 const API = 'http://localhost:8000/api/v1'
 
+async function buscarDados(url, mensagemErro) {
+  const resposta = await fetch(url)
+
+  if (!resposta.ok) {
+    throw new Error(mensagemErro)
+  }
+
+  return resposta.json()
+}
+
 function HotelSkeleton() {
   return (
     <div className="col-md-6 col-lg-4">
@@ -40,22 +50,10 @@ export default function HomeBusca() {
       setErro('')
 
       try {
-        const [resCidades, resHoteis] = await Promise.all([
-          fetch(`${API}/cidades`),
-          fetch(`${API}/hoteis`),
-        ])
-
-        if (!resCidades.ok) {
-          throw new Error('Não foi possível carregar as cidades.')
-        }
-
-        if (!resHoteis.ok) {
-          throw new Error('Não foi possível carregar os hotéis.')
-        }
-
-        const dadosCidades = await resCidades.json()
-        const dadosHoteis = await resHoteis.json()
-
+       const [dadosCidades, dadosHoteis] = await Promise.all([
+        buscarDados(`${API}/cidades`, 'Não foi possível carregar as cidades.'),
+        buscarDados(`${API}/hoteis`, 'Não foi possível carregar os hotéis.'),
+])
         setCidades(dadosCidades)
         setHoteis(dadosHoteis)
       } catch (error) {
@@ -68,17 +66,18 @@ export default function HomeBusca() {
     carregarDados()
   }, [])
 
-  const hoteisFiltrados = useMemo(() => {
-    return hoteis.filter((hotel) => {
-      const atendeCidade =
-        !cidadeId || hotel.cidade?.id === cidadeId
+  function hotelAtendeFiltros(hotel) {
+  const cidadeValida = !cidadeId || hotel.cidade?.id === cidadeId
+  const estrelasValidas = !estrelas || hotel.estrelas === Number(estrelas)
 
-      const atendeEstrelas =
-        !estrelas || hotel.estrelas === Number(estrelas)
+  return cidadeValida && estrelasValidas
+}
 
-      return atendeCidade && atendeEstrelas
-    })
-  }, [hoteis, cidadeId, estrelas])
+const hoteisFiltrados = useMemo(
+  () => hoteis.filter(hotelAtendeFiltros),
+  [hoteis, cidadeId, estrelas]
+)
+
 
   async function abrirDetalhes(hotel) {
     setHotelSelecionado(hotel)
@@ -89,15 +88,10 @@ export default function HomeBusca() {
     }
 
     try {
-      const resposta = await fetch(
-        `${API}/quartos?hotel_id=${encodeURIComponent(hotel.id)}`
-      )
-
-      if (!resposta.ok) {
-        throw new Error('Não foi possível carregar os quartos do hotel.')
-      }
-
-      const quartos = await resposta.json()
+      const quartos = await buscarDados(
+      `${API}/quartos?hotel_id=${encodeURIComponent(hotel.id)}`,
+      'Não foi possível carregar os quartos do hotel.'
+)
 
       setQuartosPorHotel((estadoAtual) => ({
         ...estadoAtual,

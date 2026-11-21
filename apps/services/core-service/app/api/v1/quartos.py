@@ -4,7 +4,6 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_admin
-from app.core.database import get_db
 from app.core.database import get_db, get_mongo_db
 from app.services.catalogo_hoteis_service import CatalogoHoteisService
 from app.schemas.quarto import QuartoCreate, QuartoResponse, QuartoUpdate
