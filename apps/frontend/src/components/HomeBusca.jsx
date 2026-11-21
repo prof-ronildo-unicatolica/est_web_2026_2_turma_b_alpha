@@ -18,7 +18,7 @@ function HotelSkeleton() {
   )
 }
 
-export default function HomeBusca() {
+export default function HomeBusca({ onCheckout }) {
   const [cidades, setCidades] = useState([])
   const [hoteis, setHoteis] = useState([])
   const [quartosPorHotel, setQuartosPorHotel] = useState({})
@@ -138,9 +138,8 @@ export default function HomeBusca() {
 
         <div className="row g-3">
           <div className="col-md-4">
-            <label className="form-label" htmlFor="cidade">Cidade</label>
+            <label className="form-label">Cidade</label>
             <select
-              id="cidade"
               className="form-select"
               value={cidadeId}
               onChange={(event) => setCidadeId(event.target.value)}
@@ -156,9 +155,8 @@ export default function HomeBusca() {
           </div>
 
           <div className="col-md-2">
-            <label className="form-label" htmlFor="checkIn">Check-in</label>
+            <label className="form-label">Check-in</label>
             <input
-              id="checkIn"
               type="date"
               className="form-control"
               value={checkIn}
@@ -167,9 +165,8 @@ export default function HomeBusca() {
           </div>
 
           <div className="col-md-2">
-            <label className="form-label" htmlFor="checkOut">Check-out</label>
+            <label className="form-label">Check-out</label>
             <input
-              id="checkOut"
               type="date"
               className="form-control"
               min={checkIn || undefined}
@@ -179,9 +176,8 @@ export default function HomeBusca() {
           </div>
 
           <div className="col-md-2">
-            <label className="form-label" htmlFor="adultos">Adultos</label>
+            <label className="form-label">Adultos</label>
             <input
-              id="adultos"
               type="number"
               className="form-control"
               min="1"
@@ -191,9 +187,8 @@ export default function HomeBusca() {
           </div>
 
           <div className="col-md-2">
-            <label className="form-label" htmlFor="criancas">Crianças</label>
+            <label className="form-label">Crianças</label>
             <input
-              id="criancas"
               type="number"
               className="form-control"
               min="0"
@@ -203,9 +198,8 @@ export default function HomeBusca() {
           </div>
 
           <div className="col-md-3">
-            <label className="form-label" htmlFor="estrelas">Estrelas</label>
+            <label className="form-label">Estrelas</label>
             <select
-              id="estrelas"
               className="form-select"
               value={estrelas}
               onChange={(event) => setEstrelas(event.target.value)}
@@ -348,6 +342,23 @@ export default function HomeBusca() {
                     <p className="mb-0">
                       Crianças: até {quarto.max_criancas}
                     </p>
+                    <button
+                      type="button"
+                      className="btn btn-primary mt-3"
+                      disabled={!checkIn || !checkOut || checkOut <= checkIn}
+                      onClick={() =>
+                        onCheckout({
+                          hotel: hotelSelecionado,
+                          quarto,
+                          checkIn,
+                          checkOut,
+                          adultos: Number(adultos),
+                          criancas: Number(criancas),
+                        })
+                      }
+                    >
+                      Continuar para checkout
+                    </button>
                   </div>
                 </div>
               ))}
