@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+﻿from dataclasses import dataclass
 from datetime import date, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Sequence
@@ -29,6 +29,8 @@ class EntradaCalculoReserva:
     early_check_in: bool = False
     late_check_out: bool = False
     nao_reembolsavel: bool = False
+    max_adultos: int | None = None
+    max_criancas: int | None = None
 
 
 @dataclass(frozen=True)
@@ -54,9 +56,28 @@ def _validar_entrada(entrada: EntradaCalculoReserva) -> None:
     if entrada.preco_diaria < ZERO:
         raise ValueError("preco_diaria não pode ser negativo")
 
+    quantidade_adultos = 0
+    quantidade_criancas = 0
+
     for hospede in entrada.hospedes:
         if hospede.idade < 0:
             raise ValueError("idade do hóspede não pode ser negativa")
+        if hospede.idade <= 12:
+            quantidade_criancas += 1
+        else:
+            quantidade_adultos += 1
+
+    if entrada.max_adultos is not None:
+        if entrada.max_adultos < 1:
+            raise ValueError("max_adultos deve ser pelo menos 1")
+        if quantidade_adultos > entrada.max_adultos:
+            raise ValueError("quantidade de adultos excede a capacidade máxima do quarto")
+
+    if entrada.max_criancas is not None:
+        if entrada.max_criancas < 0:
+            raise ValueError("max_criancas não pode ser negativo")
+        if quantidade_criancas > entrada.max_criancas:
+            raise ValueError("quantidade de crianças excede a capacidade máxima do quarto")
 
 
 def _buscar_tarifa_da_data(
