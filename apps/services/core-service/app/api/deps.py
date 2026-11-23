@@ -1,4 +1,4 @@
-"""Dependencias de autenticacao e autorizacao."""
+﻿"""Dependencias de autenticacao e autorizacao."""
 
 import uuid
 
@@ -10,7 +10,6 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import decode_access_token
 from app.repositories.usuario_repository import UsuarioRepository
-
 
 bearer_scheme = HTTPBearer(
     description="Use o token JWT retornado por POST /auth/login",
@@ -57,6 +56,7 @@ def get_current_user(
         )
 
     return {
+        "id": str(usuario.id),
         "email": usuario.email,
         "nome": usuario.nome,
         "is_admin": usuario.is_admin,
