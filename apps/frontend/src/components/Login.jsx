@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 
 export default function Login({ onCadastro, onVoltar, onLogin }) {
   const [email, setEmail] = useState('')
@@ -19,8 +19,8 @@ export default function Login({ onCadastro, onVoltar, onLogin }) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          email: email,
-          senha: senha
+          email,
+          senha
         })
       })
 
@@ -30,21 +30,21 @@ export default function Login({ onCadastro, onVoltar, onLogin }) {
         } else {
           setErro('Não foi possível realizar o login.')
         }
-
         return
       }
 
       const dados = await resposta.json()
 
-      // Armazena o access token
+      if (!dados?.access_token) {
+        setErro('Resposta de autenticação inválida.')
+        return
+      }
+
       localStorage.setItem('access_token', dados.access_token)
-      console.log('Token salvo:', localStorage.getItem('access_token'))
 
-      alert('Login realizado com sucesso!')
-      
-      onLogin()
-
-      console.log('Login realizado:', dados)
+      if (typeof onLogin === 'function') {
+        onLogin()
+      }
     } catch (error) {
       console.error('Erro ao realizar login:', error)
       setErro('Não foi possível conectar ao servidor.')

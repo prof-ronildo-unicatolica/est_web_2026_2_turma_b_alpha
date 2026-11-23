@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 
 import Cadastro from './components/Cadastro'
 import HomeBusca from './components/HomeBusca'
 import Login from './components/Login'
+import MinhasReservas from './components/MinhasReservas'
 import { apiFetch } from './services/api'
 
 export default function App() {
@@ -80,11 +81,21 @@ export default function App() {
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
               <li className="nav-item">
                 <button
-                  className="nav-link btn btn-link"
+                  className={`nav-link btn btn-link ${pagina === 'home' ? 'active fw-semibold' : ''}`}
                   type="button"
                   onClick={() => setPagina('home')}
                 >
                   Hotéis
+                </button>
+              </li>
+
+              <li className="nav-item">
+                <button
+                  className={`nav-link btn btn-link ${pagina === 'minhas-reservas' ? 'active fw-semibold' : ''}`}
+                  type="button"
+                  onClick={() => setPagina('minhas-reservas')}
+                >
+                  Minhas Reservas
                 </button>
               </li>
             </ul>
@@ -153,6 +164,17 @@ export default function App() {
       {pagina === 'home' && (
         <div className="container pb-5">
           <HomeBusca />
+        </div>
+      )}
+
+      {/* MINHAS RESERVAS */}
+      {pagina === 'minhas-reservas' && (
+        <div className="container pb-5">
+          <MinhasReservas
+            usuario={usuario}
+            onIrLogin={() => setPagina('login')}
+            onVoltarBusca={() => setPagina('home')}
+          />
         </div>
       )}
     </div>

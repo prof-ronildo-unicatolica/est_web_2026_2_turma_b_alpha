@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:8000'
+﻿const API_URL = 'http://localhost:8000/api/v1'
 
 export async function apiFetch(endpoint, options = {}) {
   const token = localStorage.getItem('access_token')
@@ -12,7 +12,11 @@ export async function apiFetch(endpoint, options = {}) {
     headers.Authorization = `Bearer ${token}`
   }
 
-  const resposta = await fetch(`${API_URL}${endpoint}`, {
+  const caminhoNormalizado = endpoint.startsWith('/api/v1')
+    ? endpoint.replace(/^\/api\/v1/, '')
+    : endpoint
+
+  const resposta = await fetch(`${API_URL}${caminhoNormalizado}`, {
     ...options,
     headers
   })
