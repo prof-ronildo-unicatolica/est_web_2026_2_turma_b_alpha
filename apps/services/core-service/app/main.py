@@ -1,4 +1,4 @@
-from contextlib import asynccontextmanager
+﻿from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,6 +9,7 @@ from app.api.v1.comodidades import router as comodidades_router
 from app.api.v1.health import router as health_router
 from app.api.v1.hoteis import router as hoteis_router
 from app.api.v1.quartos import router as quartos_router
+from app.api.v1.reservas import router as reservas_router
 from app.api.v1.servico_adicional import router as servico_adicional_router
 from app.api.v1.sobre import router as sobre_router
 from app.api.v1.tarifa_temporada import router as tarifa_temporada_router
@@ -44,6 +45,7 @@ app.include_router(auth_router, prefix=settings.API_V1_STR)
 app.include_router(cidades_router, prefix=settings.API_V1_STR)
 app.include_router(hoteis_router, prefix=settings.API_V1_STR)
 app.include_router(quartos_router, prefix=settings.API_V1_STR)
+app.include_router(reservas_router, prefix=settings.API_V1_STR)
 app.include_router(comodidades_router, prefix=settings.API_V1_STR)
 app.include_router(servico_adicional_router, prefix=settings.API_V1_STR)
 app.include_router(tarifa_temporada_router, prefix=settings.API_V1_STR)
